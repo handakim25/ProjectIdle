@@ -10,21 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: Default Local Group
+  m_Name: Packed Assets
   m_EditorClassIdentifier: 
-  m_GroupName: Default Local Group
+  m_GroupName: Packed Assets
   m_Data:
     m_SerializedData: []
-  m_GUID: ea13983ee183f8e49b3fa9665b3bcfc8
-  m_SerializeEntries:
-  - m_GUID: 6d519e4e251fb7b499c8dd33dafe3086
-    m_Address: Assets/Scenes/game.unity
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
+  m_GUID: 49ad3e1f75eafac41a0e5cd54291b08d
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: e4528c7e5bf6f694f8ec5a1487526e55, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: bba8e1d5411b5624c9a1657d54f07a67, type: 2}
-    - {fileID: 11400000, guid: 4db7dc9ee79a1aa40a562c333bfecbd1, type: 2}
+    - {fileID: 11400000, guid: 85cf660026082b84f9432d76b52e9d7d, type: 2}
+    - {fileID: 11400000, guid: f7922eab1bf9be8449ef34cc18e60494, type: 2}
