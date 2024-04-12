@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-using Idle.Utility;
+using Gust.Utility;
 
-namespace Idle
+namespace Gust
 {
     /// <summary>
     /// Addressable을 Wraping한다.

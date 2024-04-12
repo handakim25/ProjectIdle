@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Idle.Utility
+namespace Gust.Utility
 {
     /// <summary>
     /// MonoSingleton Class

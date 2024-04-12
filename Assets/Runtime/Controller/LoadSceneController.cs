@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.AddressableAssets;
 
-namespace Idle
+namespace Gust
 {
     /// <summary>
     /// Load Scene에서는 Manager들을 초기화하고 Play Scene으로 넘어간다.

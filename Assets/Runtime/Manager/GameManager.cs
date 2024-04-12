@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using Idle.Utility;
+using Gust.Utility;
 
-namespace Idle
+namespace Gust
 {
     public sealed class GameManager : MonoSingleton<GameManager>, IManager
     {

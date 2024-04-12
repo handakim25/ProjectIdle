@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using Idle.Utility;
+using Gust.Utility;
 
-namespace Idle.Audio
+namespace Gust.Audio
 {
     /// <summary>
     /// Audio Manager. BGM, SE 등을 재생한다.
@@ -18,11 +18,21 @@ namespace Idle.Audio
         private AudioSource[] _bgmAudioSource;
         private AudioSource[] _seAudioSources;
 
-        private bool _init = false;
+        // Fade var
+        /// <summary>
+        /// 현재 재생 중이거나 아니면 Fade 중인 BGM의 Audio Source
+        /// </summary>
+        private AudioSource _mainAudioSource;
 
+        private bool _init = false;
         public bool IsInit => _init;
 
         public float Progress => 1.0f;
+
+        [Header("Test Settings")]
+        // 추후에 Resource System 구축
+        private AudioClip _testAudio;
+        private AudioClip _fateInAudio;
 
         private void Start()
         {
@@ -55,15 +65,31 @@ namespace Idle.Audio
 
         /// <summary>
         /// 현재 재생 중인 BGM을 중지하고 새로운 BGM을 재생한다.
+        /// 만약 같은 
         /// </summary>
-        /// <param name="soundIndex"></param>
+        /// <param name="key">Asset Path</param>
         /// <param name="volume"></param>
         /// <param name="loop"></param>
-        public void PlayBGM(int soundIndex, float volume = 1.0f, bool loop = true)
+        public void PlayBGM(string key, float volume = 1.0f, bool loop = true)
         {
             
         }
 
+        /// <summary>
+        /// 현재 재생 중인 BGM을 중지한다.
+        /// </summary>
+        public void StopBGM()
+        {
+            
+        }
+
+        /// <summary>
+        /// Audio Source를 실질적으로 적용하기 위한 함수
+        /// </summary>
+        /// <param name="targetAudioSource"></param>
+        /// <param name="clip"></param>
+        /// <param name="volume"></param>
+        /// <param name="loop"></param>
         private void PlaySound(AudioSource targetAudioSource, AudioClip clip, float volume = 1.0f, bool loop = false)
         {
             // targetAudioSource.clip = clip;
