@@ -8,6 +8,7 @@ namespace Gust
 
     /// <summary>
     /// Sound Manager Tester 객체
+    /// IMGUI를 이용해서 SoundManager의 기능을 테스트한다.
     /// </summary>
     public class SoundManagerTester : MonoBehaviour
     {
@@ -18,29 +19,31 @@ namespace Gust
         private void Start()
         {
             manager = SoundManager.Instance;
-
-            testButtonStyle = new GUIStyle(GUI.skin.button);
-            testButtonStyle.fontSize = 24;
+            if(manager == null)
+            {
+                Debug.LogError($"SoundManager is null");
+            }
         }
 
-        public int startX = 10;
-        public int startY = 10;
-
-        public int width = 400;
-        public int height = 128;
-
-        public int interval = 10;
+        private int _buttonWidth = 400;
+        private int _buttonHeight = 128;
 
         private void OnGUI()
         {
+            // Start에서 초기화하면 에러가 발생한다.
+            testButtonStyle ??= new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 40,
+            };
+
             using (var verticlaScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
                 GUILayout.Space(10);
-                if(GUILayout.Button("Play BGM", testButtonStyle, GUILayout.Width(400), GUILayout.Height(128)))
+                if(GUILayout.Button("Play BGM",  testButtonStyle, GUILayout.Width(_buttonWidth), GUILayout.Height(_buttonHeight)))
                 {
                     manager.PlayBGM("bgm_test");
                 }
-                if(GUILayout.Button("Stop BGM", testButtonStyle, GUILayout.Width(400), GUILayout.Height(128)))
+                if(GUILayout.Button("Stop BGM",  testButtonStyle, GUILayout.Width(_buttonWidth), GUILayout.Height(_buttonHeight)))
                 {
                     manager.StopBGM();
                 }
