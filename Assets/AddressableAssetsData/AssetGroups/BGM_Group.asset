@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: BGM_Group
+  m_EditorClassIdentifier: 
+  m_GroupName: BGM_Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 49ad3e1f75eafac41a0e5cd54291b08d
+  m_SerializeEntries:
+  - m_GUID: 475f4837af487ce4a9e68bb227455e4c
+    m_Address: Assets/Audio/BGM_01.wav
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - BGM
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 90eae78e8ce85a849b5b0ca11b2de641
+    m_Address: Assets/Audio/BGM_02.wav
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - BGM
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 47f45ef7b5767674393cc401fc325705
+    m_Address: Assets/Audio/BGM_03.wav
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - BGM
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1532c7e67c2d60c4c8780da14b7e8fcf
+    m_Address: Assets/Audio/BGM_04.wav
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - BGM
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: e4528c7e5bf6f694f8ec5a1487526e55, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 85cf660026082b84f9432d76b52e9d7d, type: 2}
+    - {fileID: 11400000, guid: f7922eab1bf9be8449ef34cc18e60494, type: 2}
