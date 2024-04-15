@@ -35,6 +35,12 @@ Fade를 진행하기 위해서는 Fade 기록을 관리해야 한다.
 - 현재 재생 중인 BGM이 있을 경우는 재생 중인 BGM을 정지하고 새로운 BGM 재생
 - Fading 중에는 Fade를 정지하고 새로운 BGM을 재생
 
+### Stop BGM
+
+- 현재 재생 중인 BGM이 없을 경우는 아무 것도 하지 않는다.
+- A에서 재생 중인 BGM이 있을 경우 A를 정지
+- B에서 재생 중인 BGM이 있을 경우 B를 정지
+
 ### Fade In
 
 - 현재 재생 중인 BGM이 없을 경우는 비어 있는 Audio SOurce에서 Fade in 진행

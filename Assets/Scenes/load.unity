@@ -511,11 +511,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ccdb89298c78a444ac05a1706a814ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startX: 10
-  startY: 10
-  width: 400
-  height: 128
-  interval: 10
 --- !u!4 &1517228229
 Transform:
   m_ObjectHideFlags: 0
@@ -576,6 +571,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxSEChannel: 5
+  _testAudio: {fileID: 8300000, guid: 475f4837af487ce4a9e68bb227455e4c, type: 3}
+  _fateInAudio: {fileID: 8300000, guid: 90eae78e8ce85a849b5b0ca11b2de641, type: 3}
 --- !u!1 &1824602047
 GameObject:
   m_ObjectHideFlags: 0

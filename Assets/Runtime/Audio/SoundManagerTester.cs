@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using UnityEngine.AddressableAssets;
+
 namespace Gust
 {
     using Audio;
@@ -15,6 +17,8 @@ namespace Gust
         SoundManager manager;
 
         private GUIStyle testButtonStyle;
+
+        public AssetReferenceT<AudioClip> _bgmAssetReference;
 
         private void Start()
         {
@@ -46,6 +50,11 @@ namespace Gust
                 if(GUILayout.Button("Stop BGM",  testButtonStyle, GUILayout.Width(_buttonWidth), GUILayout.Height(_buttonHeight)))
                 {
                     manager.StopBGM();
+                }
+                GUILayout.Space(10);
+                if(GUILayout.Button("Fade Out",  testButtonStyle, GUILayout.Width(_buttonWidth), GUILayout.Height(_buttonHeight)))
+                {
+                    manager.FadeOut(duration: 1.0f);
                 }
             }
 

@@ -28,8 +28,8 @@ namespace Gust.Audio
 
         [Header("Test Settings")]
         // 추후에 Resource System 구축
-        private AudioClip _testAudio;
-        private AudioClip _fateInAudio;
+        [SerializeField] private AudioClip _testAudio;
+        [SerializeField] private AudioClip _fateInAudio;
 
         private enum BGMState
         {
@@ -131,9 +131,9 @@ namespace Gust.Audio
         /// 현재 재생 중인 BGM을 Fade Out한다. 재생 중이지 않을 경우는 아무런 동작도 하지 않는다.
         /// </summary>
         /// <param name="duration"></param>
-        public void FadeOut(float duration, Interpolate.EaseType easeType)
+        public void FadeOut(float duration, Interpolate.EaseType easeType = Interpolate.EaseType.Linear)
         {
-
+            
         }
 
         public void FadeIn(string key, float duration, float volume = 1.0f)
