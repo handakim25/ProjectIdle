@@ -2,6 +2,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 using Gust.Utility;
 
@@ -23,6 +24,17 @@ namespace Gust.Audio
         [Header("Audio Settings")]
         [SerializeField] private int _maxSEChannel = 5;
         [SerializeField] private int _maxUIChannel = 5;
+
+        [Header("Audio Mixer Param")]
+        [SerializeField] private string _audioMixerPath = "Assets/Audio/MainAudioMixer.mixer";
+        [SerializeField] private string _masterGroupName = "Master";
+        [SerializeField] private string _bgmGroupName = "BGM";
+        [SerializeField] private string _seGroupName = "Effect";
+        [SerializeField] private string _uiGroupName = "UI";
+        [SerializeField] private string _masterVolumeParam = "MasterVolume";
+        [SerializeField] private string _bgmVolumeParam = "BgmVolume";
+        [SerializeField] private string _seVolumeParam = "EffectVolume";
+        [SerializeField] private string _uiVolumeParam = "UiVolume";
 
         private AudioSource[] _bgmAudioSources;
         private AudioSource[] _seAudioSources;
@@ -101,6 +113,7 @@ namespace Gust.Audio
             }
             _init = true;
 
+            // Create Audio Channels
             _bgmAudioSources = new AudioSource[2];
             CreateAudioSources(transform, "BGM", _bgmAudioSources, 2);
             foreach(var bgmAudioSource in _bgmAudioSources)
@@ -124,6 +137,9 @@ namespace Gust.Audio
                 uiAudioSource.outputAudioMixerGroup = null;
             }
             _uiStartTimes = new float[_maxUIChannel];
+
+            // Load Audio Mixer
+            ResourceManager.Instance.LoadAsset<AudioMixer>(_audioMixerPath, InitAudioMixer);
         }
 
         private void CreateAudioSources(Transform parent, string name, AudioSource[] audioSources, int count)
@@ -309,5 +325,101 @@ namespace Gust.Audio
             PlaySound(audioSources[channel], _testAudio, volume);
             startTimes[channel] = Time.time;
         }
+
+
+        #region Mixer
+        
+        public enum VolumeType
+        {
+            Master,
+            BGM,
+            SFX,
+            UI,
+        }
+
+        private AudioMixer _mixer;
+
+        private void InitAudioMixer(AudioMixer mixer)
+        {
+            _mixer = mixer;
+            if(_mixer == null)
+            {
+                Debug.LogError($"Cannot load AudioMixer: {_audioMixerPath}");
+                return;
+            }
+
+            foreach(AudioSource audioSource in _bgmAudioSources)
+            {
+                audioSource.outputAudioMixerGroup = _mixer.FindMatchingGroups(_bgmGroupName)[0];
+            }
+            foreach(AudioSource audioSource in _seAudioSources)
+            {
+                audioSource.outputAudioMixerGroup = _mixer.FindMatchingGroups(_seGroupName)[0];
+            }
+            foreach(AudioSource audioSource in _uiAudioSources)
+            {
+                audioSource.outputAudioMixerGroup = _mixer.FindMatchingGroups(_uiGroupName)[0];
+            }
+        }
+
+        /// <summary>
+        /// Volume 설정
+        /// </summary>
+        /// <param name="type">설정할 Volume의 Type</param>
+        /// <param name="ratio">[0,1]</param>
+        public void SetVolume(VolumeType type, float ratio)
+        {
+            if(_mixer == null)
+            {
+                return;
+            }
+
+            // 참조
+            // https://johnleonardfrench.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
+            // https://forum.unity.com/threads/audiomixer-setfloat-doesnt-work-on-awake.323880/
+            // https://ko.wikipedia.org/wiki/%EB%8D%B0%EC%8B%9C%EB%B2%A8
+
+            // Audio Mixer에서 0db는 최대 출력을 의마한다.
+            // Power는 V^2/R이므로 최종 식은 20 * log10(V1/V2)이다.
+
+            // ratio는 선형적으로 움직이지만 volume은 로그 단위로 움직인다.
+            ratio = Mathf.Clamp(ratio, 0.0001f, 1f); // Log10(ratio) : -4~0, 최소가 -80이므로 -4 밑으로 내려가는 값은 필요 없다.
+            float volume = Mathf.Log10(ratio) * 20;
+
+            // Note
+            // ref : https://docs.unity3d.com/ScriptReference/Audio.AudioMixer.SetFloat.html
+            // Awake, OnEnable, RuntimeInitializeLoadType.AfterSceneLoad에서 SetFloat 호출하지 말 것
+            _mixer.SetFloat(GetVolumeParam(type), volume);
+        }
+
+        /// <summary>
+        /// Volume을 반환
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns>[0,1], Mixer가 없을 경우 0f를 반환</returns>
+        public float GetVolume(VolumeType type)
+        {
+            if(_mixer == null)
+            {
+                return 0f;
+            }
+
+            _mixer.GetFloat(GetVolumeParam(type), out float volume);
+            return Mathf.Pow(10, volume / 20);
+        }
+
+        private string GetVolumeParam(VolumeType type)
+        {
+            return type switch
+            {
+                VolumeType.Master => _masterVolumeParam,
+                VolumeType.BGM => _bgmVolumeParam,
+                VolumeType.SFX => _seVolumeParam,
+                VolumeType.UI => _uiVolumeParam,
+                _ => _masterGroupName,
+            };
+        }
+        
+        #endregion Mixer
     }
 }

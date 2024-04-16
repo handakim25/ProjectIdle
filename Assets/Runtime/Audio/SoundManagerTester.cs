@@ -29,11 +29,6 @@ namespace Gust
             }
         }
 
-        private void Update()
-        {
-            Debug.Log($"CurVolume: {manager.CurBgmVolume}");
-        }
-
         private int _buttonWidth = 400;
         private int _buttonHeight = 128;
 
@@ -69,6 +64,11 @@ namespace Gust
                 {
                     manager.FadeTo("bgm_test", 1.0f);
                 }
+                GUILayout.Space(10);
+                float masterVolume = manager.GetVolume(SoundManager.VolumeType.Master);
+                GUILayout.Label($"Master Volume: {masterVolume}", testButtonStyle);
+                masterVolume = GUILayout.HorizontalSlider(masterVolume, 0.0f, 1.0f);
+                manager.SetVolume(SoundManager.VolumeType.Master, masterVolume);
             }
 
         }

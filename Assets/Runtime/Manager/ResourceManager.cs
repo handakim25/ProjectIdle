@@ -45,5 +45,13 @@ namespace Gust
         {
             Addressables.LoadSceneAsync(sceneName);
         }
+
+        public void LoadAsset<T>(string key, System.Action<T> callback)
+        {
+            Addressables.LoadAssetAsync<T>(key).Completed += handle =>
+            {
+                callback?.Invoke(handle.Result);
+            };
+        }
     }
 }
