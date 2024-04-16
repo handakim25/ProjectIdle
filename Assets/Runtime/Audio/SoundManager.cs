@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,16 +22,17 @@ namespace Gust.Audio
 
         [Header("Audio Settings")]
         [SerializeField] private int _maxSEChannel = 5;
+        [SerializeField] private int _maxUIChannel = 5;
 
         private AudioSource[] _bgmAudioSources;
         private AudioSource[] _seAudioSources;
+        private AudioSource[] _uiAudioSources;
 
-        // Fade
-        private BGMState _bgmState = BGMState.None;
+        // BGM
         private SoundPlayInfo _curPlayInfo; // 현재 재생 중인 BGM 정보
         private SoundPlayInfo _lastPlayInfo; // 이전에 재생 중이었던 BGM 정보
 
-        public float CurVolume
+        public float CurBgmVolume
         {
             get
             {
@@ -44,6 +46,12 @@ namespace Gust.Audio
 
         public bool IsPlayingBGM => _curPlayInfo != null && _curPlayInfo.TargetAudioSource.isPlaying;
 
+        // SE
+        private float[] _seStartTimes;
+
+        // UI
+        private float[] _uiStartTimes;
+
         private bool _init = false;
         public bool IsInit => _init;
 
@@ -53,15 +61,6 @@ namespace Gust.Audio
         // 추후에 Resource System 구축
         [SerializeField] private AudioClip _testAudio;
         [SerializeField] private AudioClip _fateInAudio;
-
-        private enum BGMState
-        {
-            None, // BGM이 재생 중이 아님
-            PlayA, // BGM_A가 재생 중
-            PlayB, // BGM_B가 재생 중
-            AtoB, // BGM_A에서 BGM_B로 Fade 중
-            BtoA, // BGM_B에서 BGM_A로 Fade 중
-        }
 
         private void Start()
         {
@@ -104,8 +103,27 @@ namespace Gust.Audio
 
             _bgmAudioSources = new AudioSource[2];
             CreateAudioSources(transform, "BGM", _bgmAudioSources, 2);
+            foreach(var bgmAudioSource in _bgmAudioSources)
+            {
+                bgmAudioSource.outputAudioMixerGroup = null;
+            }
+
             _seAudioSources = new AudioSource[_maxSEChannel];
             CreateAudioSources(transform, "SE", _seAudioSources, _maxSEChannel);
+            foreach(var seAudioSource in _seAudioSources)
+            {
+                seAudioSource.outputAudioMixerGroup = null;
+            }
+            _seStartTimes = new float[_maxSEChannel];
+
+            _uiAudioSources = new AudioSource[_maxUIChannel];
+            CreateAudioSources(transform, "UI", _uiAudioSources, _maxUIChannel);
+            foreach(var uiAudioSource in _uiAudioSources)
+            {
+                uiAudioSource.ignoreListenerPause = true;
+                uiAudioSource.outputAudioMixerGroup = null;
+            }
+            _uiStartTimes = new float[_maxUIChannel];
         }
 
         private void CreateAudioSources(Transform parent, string name, AudioSource[] audioSources, int count)
@@ -218,13 +236,29 @@ namespace Gust.Audio
 
         #region SE
         
-        
-        
+        /// <summary>
+        /// Effect Sound를 재생한다. Sound 채널 여분이 없을 경우는 가장 오래된 SE를 중지하고 재생한다.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="volume"></param>
+        public void PlayEffectSound(string key, float volume)
+        {
+            PlaySoundInArr(_seAudioSources, _seStartTimes, volume);
+        }
+
         #endregion SE
 
         #region UI
-        
-        
+
+        /// <summary>
+        /// UI Sound를 재생한다. Sound 채널 여분이 없을 경우는 가장 오래된 UI Sound를 중지하고 재생한다.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="volume"></param>
+        public void PlayUISound(string key, float volume)
+        {
+            PlaySoundInArr(_uiAudioSources, _uiStartTimes, volume);
+        }
         
         #endregion UI
 
@@ -242,6 +276,38 @@ namespace Gust.Audio
             targetAudioSource.volume = volume;
             targetAudioSource.loop = loop;
             targetAudioSource.Play();
+        }
+
+        private void PlaySoundInArr(AudioSource[] audioSources, float[] startTimes, float volume)
+        {
+            int channel = -1;
+            for (int i = 0; i < audioSources.Length; ++i)
+            {
+                if (audioSources[i].isPlaying == false)
+                {
+                    channel = i;
+                    break;
+                }
+            }
+
+            // SE 채널이 모두 사용 중일 경우 가장 오래된 SE를 중지하고 재생한다.
+            if (channel == -1)
+            {
+                float longestTime = 0f;
+                channel = 0;
+                for (int i = 0; i < audioSources.Length; ++i)
+                {
+                    if (startTimes[i] > longestTime)
+                    {
+                        longestTime = startTimes[i];
+                        channel = i;
+                    }
+                }
+                audioSources[channel].Stop();
+            }
+
+            PlaySound(audioSources[channel], _testAudio, volume);
+            startTimes[channel] = Time.time;
         }
     }
 }

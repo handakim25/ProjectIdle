@@ -31,7 +31,7 @@ namespace Gust
 
         private void Update()
         {
-            Debug.Log($"CurVolume: {manager.CurVolume}");
+            Debug.Log($"CurVolume: {manager.CurBgmVolume}");
         }
 
         private int _buttonWidth = 400;
