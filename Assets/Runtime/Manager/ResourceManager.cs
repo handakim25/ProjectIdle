@@ -16,14 +16,6 @@ namespace Gust
         public float Progress => _progress;
         private float _progress = 0.0f;
 
-        // public void LoadAsset<T>(string key, System.Action<T> callback)
-        // {
-        //     Addressables.LoadAssetAsync<T>(key).Completed += handle =>
-        //     {
-        //         callback?.Invoke(handle.Result);
-        //     };
-        // }
-
         private void Start()
         {
             StartCoroutine(WatInit());

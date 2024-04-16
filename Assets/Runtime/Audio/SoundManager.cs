@@ -84,8 +84,6 @@ namespace Gust.Audio
         /// </summary>
         private void Update()
         {
-            // @To-Do
-            // Do Fade
             // Fade 중이라면 Fade를 진행한다. 일반 재생의 경우는 Fade 중이 아니므로 아무런 동작도 하지 않는다.
             if(_curPlayInfo != null)
             {
