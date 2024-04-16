@@ -10,16 +10,39 @@ namespace Gust.Audio
     /// Audio Manager. BGM, SE 등을 재생한다.
     /// Audio를 재생하기 위해서는 초기화가 진행이 되어야 한다. Start에서 초기화를 진행하므로 최소한 Scene에서 Start를 지나야 한다.
     /// </summary>
-    public sealed class SoundManager : MonoSingleton<SoundManager>, IManager
+    public sealed partial class SoundManager : MonoSingleton<SoundManager>, IManager
     {
+        public enum FadeType
+        {
+            None,
+            FadeIn,
+            FadeOut,
+        }
+
         [Header("Audio Settings")]
         [SerializeField] private int _maxSEChannel = 5;
 
         private AudioSource[] _bgmAudioSources;
         private AudioSource[] _seAudioSources;
 
-        // Fade var
+        // Fade
         private BGMState _bgmState = BGMState.None;
+        private SoundPlayInfo _curPlayInfo; // 현재 재생 중인 BGM 정보
+        private SoundPlayInfo _lastPlayInfo; // 이전에 재생 중이었던 BGM 정보
+
+        public float CurVolume
+        {
+            get
+            {
+                if(_curPlayInfo == null || _curPlayInfo.TargetAudioSource.isPlaying == false)
+                {
+                    return 0f;
+                }
+                return _curPlayInfo.TargetAudioSource.volume;
+            }
+        }
+
+        public bool IsPlayingBGM => _curPlayInfo != null && _curPlayInfo.TargetAudioSource.isPlaying;
 
         private bool _init = false;
         public bool IsInit => _init;
@@ -50,27 +73,24 @@ namespace Gust.Audio
         /// </summary>
         private void Update()
         {
-            // @Note
-            // 코루틴을 사용해도 되지만 현재는 단순하게 구현한다.
-            // Check BGM State : Fade 상태는 처음 설정에서 진행된다. 이하의 상태 체크는 Fade의 진행 결과를 추적하는 과정이다.
-            // A가 재생 중이고, B가 재생 중이 아니라면 A가 재생 중이라고 판단
-            if(_bgmAudioSources[0].isPlaying && _bgmAudioSources[1].isPlaying == false)
+            // @To-Do
+            // Do Fade
+            // Fade 중이라면 Fade를 진행한다. 일반 재생의 경우는 Fade 중이 아니므로 아무런 동작도 하지 않는다.
+            if(_curPlayInfo != null)
             {
-                _bgmState = BGMState.PlayA;
+                _curPlayInfo.DoFade(Time.deltaTime);
+                if(_curPlayInfo.TargetAudioSource.isPlaying == false)
+                {
+                    _curPlayInfo = null;
+                }
             }
-            // B가 재생 중이고, A가 재생 중이 아니라면 B가 재생 중이라고 판단
-            else if(_bgmAudioSources[0].isPlaying == false && _bgmAudioSources[1].isPlaying)
+            if(_lastPlayInfo != null)
             {
-                _bgmState = BGMState.PlayB;
-            }
-            // A, B 둘다 재생 중이지 않으면 None
-            else if(_bgmAudioSources[0].isPlaying == false && _bgmAudioSources[1].isPlaying == false)
-            {
-                _bgmState = BGMState.None;
-            }
-            else
-            {
-                _bgmState = BGMState.None;
+                _lastPlayInfo.DoFade(Time.deltaTime);
+                if(_lastPlayInfo.TargetAudioSource.isPlaying == false)
+                {
+                    _lastPlayInfo = null;
+                }
             }
         }
 
@@ -98,6 +118,8 @@ namespace Gust.Audio
             }
         }
 
+        #region BGM
+        
         /// <summary>
         /// 현재 재생 중인 BGM을 중지하고 새로운 BGM을 재생한다.
         /// 만약 같은 음악일 경우는 아무런 동작도 하지 않는다.
@@ -113,6 +135,7 @@ namespace Gust.Audio
             // Fade를 정지하든, 새로운 BGM을 재생하든 B를 정지하고 A를 재생하면 된다.
             _bgmAudioSources[1].Stop();
             PlaySound(_bgmAudioSources[0], _testAudio, volume, loop);
+            _curPlayInfo = new SoundPlayInfo(_bgmAudioSources[0]);
         }
 
         /// <summary>
@@ -125,21 +148,85 @@ namespace Gust.Audio
             // 굳이 확인할 것 없이 둘 다 정지시키면 된다.
             _bgmAudioSources[0].Stop();
             _bgmAudioSources[1].Stop();
+            _curPlayInfo = null;
+            _lastPlayInfo = null;
         }
 
         /// <summary>
-        /// 현재 재생 중인 BGM을 Fade Out한다. 재생 중이지 않을 경우는 아무런 동작도 하지 않는다.
+        /// 현재 재생 중인 BGM을 Fade Out한다.
         /// </summary>
         /// <param name="duration"></param>
+        /// <remarks>
+        /// - Fade 없이 Play 중일 경우 : Fade를 진행한다.
+        /// - FadeIn 진행 중일 경우 : Fade In을 중지하고 Fade Out을 진행한다. 이 경우 현재 Volume을 기준으로 Fade Out을 진행한다.
+        /// - FadeTo 진행 중일 경우 : Fade Out은 그대로 진행(lastPlayInfo), Fade In(curPlayInfo)을 Fade Out으로 전환
+        /// </remarks>
         public void FadeOut(float duration, Interpolate.EaseType easeType = Interpolate.EaseType.Linear)
         {
-            
+            _curPlayInfo?.FadeOut(duration, easeType);
         }
 
-        public void FadeIn(string key, float duration, float volume = 1.0f)
+        /// <summary>
+        /// 새로운 BGM을 Fade In한다. 기존 BGM은 멈춘다. 기존 BGM을 FadeOut으로 진행하는 함수는 FadeTo이다.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="duration"></param>
+        /// <param name="volume"></param>
+        public void FadeIn(string key, float duration, float volume = 1.0f, Interpolate.EaseType easeType = Interpolate.EaseType.Linear)
         {
-
+            // PlayBGM이므로 어디에 재생 중인지 확인할 필요가 없다.
+            StopBGM();
+            PlaySound(_bgmAudioSources[0], _testAudio, 0f, true);
+            _curPlayInfo = new SoundPlayInfo(_bgmAudioSources[0]);
+            _curPlayInfo.FadeIn(duration, volume, Interpolate.EaseType.Linear);
         }
+
+        /// <summary>
+        /// 현재 재생 중인 BGM을 Fade Out하고, 새로운 BGM을 Fade In한다.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="duration"></param>
+        /// <param name="volume"></param>
+        /// <remarks>
+        /// - BGM이 없을 경우 Fade In 진행
+        /// - Fade 중일 경우는 Fade Out 중지, Fade In을 Fade Out, 새로운 BGM을 Fade In으로 진행
+        /// - BGM이 재생 중일 경우는 재생 중 BGM을 Fade Out, 새로운 BGM을 Fade In으로 진행
+        /// </remarks>
+        public void FadeTo(string key, float duration, float volume = 1.0f, Interpolate.EaseType easeType = Interpolate.EaseType.Linear)
+        {
+            // 아무 BGM도 재생 되지 않을 경우는 Fade In을 진행한다.
+            if(IsPlayingBGM == false)
+            {
+                FadeIn(key, duration, volume);
+                return;
+            }
+
+            _lastPlayInfo?.TargetAudioSource.Stop();
+
+            // 현재 최소한 하나의 BGM은 재생 중이므로 _curPlayInfo는 null이 아니다.
+            _lastPlayInfo = _curPlayInfo;
+            AudioSource otherAudioSource = _lastPlayInfo.TargetAudioSource == _bgmAudioSources[0] ? _bgmAudioSources[1] : _bgmAudioSources[0];
+
+            PlaySound(otherAudioSource, _fateInAudio, volume);
+            _curPlayInfo = new SoundPlayInfo(otherAudioSource);
+
+            _lastPlayInfo.FadeOut(duration, easeType);
+            _curPlayInfo.FadeIn(duration, volume, easeType);
+        }
+        
+        #endregion BGM
+
+        #region SE
+        
+        
+        
+        #endregion SE
+
+        #region UI
+        
+        
+        
+        #endregion UI
 
         /// <summary>
         /// Audio Source를 실질적으로 적용하기 위한 함수

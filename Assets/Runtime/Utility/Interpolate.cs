@@ -11,6 +11,7 @@ namespace Gust.Utility
 
         public enum EaseType
         {
+            None,
             Linear,
             EaseInSine,
             EaseOutSine,

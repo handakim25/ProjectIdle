@@ -511,6 +511,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ccdb89298c78a444ac05a1706a814ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _bgmAssetReference:
+    m_AssetGUID: 475f4837af487ce4a9e68bb227455e4c
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
 --- !u!4 &1517228229
 Transform:
   m_ObjectHideFlags: 0

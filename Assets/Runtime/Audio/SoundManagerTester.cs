@@ -29,6 +29,11 @@ namespace Gust
             }
         }
 
+        private void Update()
+        {
+            Debug.Log($"CurVolume: {manager.CurVolume}");
+        }
+
         private int _buttonWidth = 400;
         private int _buttonHeight = 128;
 
@@ -55,6 +60,14 @@ namespace Gust
                 if(GUILayout.Button("Fade Out",  testButtonStyle, GUILayout.Width(_buttonWidth), GUILayout.Height(_buttonHeight)))
                 {
                     manager.FadeOut(duration: 1.0f);
+                }
+                if(GUILayout.Button("Fade In",  testButtonStyle, GUILayout.Width(_buttonWidth), GUILayout.Height(_buttonHeight)))
+                {
+                    manager.FadeIn("bgm_test", 1.0f);
+                }
+                if(GUILayout.Button("Fade To",  testButtonStyle, GUILayout.Width(_buttonWidth), GUILayout.Height(_buttonHeight)))
+                {
+                    manager.FadeTo("bgm_test", 1.0f);
                 }
             }
 
