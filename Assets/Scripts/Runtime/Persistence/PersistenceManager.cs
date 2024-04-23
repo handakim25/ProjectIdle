@@ -5,9 +5,17 @@ using UnityEngine;
 using Newtonsoft.Json;
 
 using Gust.Utility;
+using System;
 
 namespace Gust.Persistence
 {
+    // @To-Do
+    // 직렬화 관련된 부분을 확장성 있게 수정할 수 있을 것 같다.
+    // Unity ShaderGraph 관련 코드 참고할 것
+
+    /// <summary>
+    /// Save File을 저장하기 위한 Interface
+    /// </summary>
     public interface IPersistence
     {
         string FileName { get; }
@@ -15,11 +23,11 @@ namespace Gust.Persistence
         /// string 형태로 저장한다.
         /// </summary>
         /// <returns></returns>
-        string Save();
+        string SaveDataToString();
         /// <summary>
-        /// string 형태로 저장된 데이터를 불러온다.s
+        /// string 형태로 저장된 데이터를 불러온다.
         /// </summary>
-        bool Load(string data);
+        bool LoadDataFromString(string data);
     }
 
     /// <summary>
@@ -30,70 +38,76 @@ namespace Gust.Persistence
         // @To-Do
         // Game Save Data를 저장하는 기능 추가
 
-        public enum PersistenceType
-        {
-            PlayerPrefs,
-            File,
-        }
-
+        /// <summary>
+        /// 저장 방식을 선택한다. Run-Time에서 변경할 수 없다.
+        /// </summary>
+        [Header("Save Settings")]
         [Tooltip("저장 방식을 선택한다.")]
         [SerializeField] private PersistenceType persistenceType = PersistenceType.PlayerPrefs;
+        private IPersistenceStrategy _persistanceStrategy;
 
-        private const string _saveDataKey = "SaveData";
-
-        private Dictionary<string, IPersistence> _persistenceDict = new Dictionary<string, IPersistence>();
-
-        public void Register(IPersistence persistence)
+        private void Awake()
         {
-            if (_persistenceDict.ContainsKey(persistence.FileName))
-            {
-                Debug.LogWarning($"Already registered {persistence.FileName}");
-                return;
-            }
-
-            _persistenceDict.Add(persistence.FileName, persistence);
+            _persistanceStrategy = PersistenceStrategyFactory.Create(persistenceType);
         }
 
-        public void Unregister(IPersistence persistence)
+        /// <summary>
+        /// 현재 데이터를 저장한다.
+        /// </summary>
+        /// <param name="data"></param>
+        public bool SaveData(IPersistence data)
         {
-            if (!_persistenceDict.ContainsKey(persistence.FileName))
-            {
-                Debug.LogWarning($"Not registered {persistence.FileName}");
-                return;
-            }
-
-            _persistenceDict.Remove(persistence.FileName);
+            return SaveData(data.FileName, data.SaveDataToString());
         }
 
-        public void Save()
+        private bool SaveData(string fileName, string data)
         {
-            var saveData = new Dictionary<string, string>();
-
-            foreach (var persistence in _persistenceDict.Values)
+            if(string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(data))
             {
-                saveData.Add(persistence.FileName, persistence.Save());
+                Debug.LogError("Failed to save data. fileName or data is empty.");
+                return false;
             }
 
-            PlayerPrefs.SetString(_saveDataKey, JsonConvert.SerializeObject(saveData));
-            PlayerPrefs.Save();
+            if (_persistanceStrategy.Save(fileName, data))
+            {
+                return true;
+            }
+            else
+            {
+                Debug.LogError("Failed to save data to persistence strategy.");
+                return false;
+            }
         }
 
-        public void Load()
+        public bool LoadData(IPersistence persistence)
         {
-            if (!PlayerPrefs.HasKey(_saveDataKey))
+            if(LoadData(persistence.FileName, out string data))
             {
-                Debug.LogWarning("No save data");
-                return;
+                return persistence.LoadDataFromString(data);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private bool LoadData(string fileName, out string data)
+        {
+            if(string.IsNullOrEmpty(fileName))
+            {
+                Debug.LogError("Failed to load data. fileName is empty.");
+                data = string.Empty;
+                return false;
             }
 
-            var saveData = JsonConvert.DeserializeObject<Dictionary<string, string>>(PlayerPrefs.GetString(_saveDataKey));
-
-            foreach (var persistence in _persistenceDict.Values)
+            if (_persistanceStrategy.Load(fileName, out data))
             {
-                if (saveData.ContainsKey(persistence.FileName))
-                {
-                    persistence.Load(saveData[persistence.FileName]);
-                }
+                return true;
+            }
+            else
+            {
+                Debug.LogError("Failed to load data from persistence strategy.");
+                return false;
             }
         }
     }
