@@ -43,6 +43,9 @@ namespace Gust.Utility
             }
         }
 
+        /// <summary>
+        /// Singleton 동작을 하기 때문에 이를 상속하지 않는다. 초기화는 Init()에서 한다.
+        /// </summary>
         private void Awake()
         {
             if(s_instance == null)
@@ -51,6 +54,7 @@ namespace Gust.Utility
                 if(_dontDestroyOnLoad)
                 {
                     DontDestroyOnLoad(GetRootObject());
+                    Init();
                 }
             }
             else
@@ -75,6 +79,11 @@ namespace Gust.Utility
             // 종료 시에는 instance를 반환하면 안 된다.
             s_instance = null;
             s_isAppClosing = true;
+        }
+
+        protected virtual void Init()
+        {
+            // Override this method to initialize
         }
     }
 }
