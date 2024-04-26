@@ -18,10 +18,13 @@ namespace Gust
 
         /// <summary>
         /// Load Scene Callback. 0.0f ~ 1.0f
+        /// UI에서 Progress Bar 표시하기 위해 사용
         /// </summary>
         public event System.Action<float> OnProgress;
         private float _progress = 0.0f;
         
+        public event System.Action OnComplete;
+
         private void Start()
         {
             // manager들을 어떻게 찾을 것인지는 아직 최적화를 못 하겠다. 추후에 수정이 필요하다.
@@ -41,6 +44,7 @@ namespace Gust
                 yield return null;
             }
 
+            OnComplete?.Invoke();
             ResourceManager.Instance.LoadScene(sceneName);
         }
     }

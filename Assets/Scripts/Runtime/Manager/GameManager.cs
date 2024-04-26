@@ -18,6 +18,19 @@ namespace Gust
         [SerializeField] private string _gameSettingFileName = "GameSetting.json";
         private GameSetting _setting;
 
+        private void Start()
+        {
+            var LoadSceneController = FindObjectOfType<LoadSceneController>();
+            if(LoadSceneController != null)
+            {
+                LoadSceneController.OnComplete += OnCompleteHandler;
+            }
+            else
+            {
+                OnCompleteHandler();
+            }
+        }
+
         private void OnCompleteHandler()
         {
             // Load Game Settings
