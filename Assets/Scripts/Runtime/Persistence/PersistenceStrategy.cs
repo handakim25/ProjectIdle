@@ -14,8 +14,21 @@ namespace Gust.Persistence
     /// </summary>
     public interface IPersistenceStrategy
     {
+        /// <summary>
+        /// 파일을 저장한다. 파일을 저장할 경우 덮어쓰기가 된다.
+        /// </summary>
+        /// <param name="fileName">저장하기 위한 파일 이름</param>
+        /// <param name="data">저장할 데이터</param>
+        /// <returns>저장에 성공할 경우 true, 실패할 경우 false를 반환</returns>
         bool Save(string fileName, string data);
+        /// <summary>
+        /// 파일을 읽어온다.
+        /// </summary>
+        /// <param name="fileName">불러오기할 파일 이름</param>
+        /// <param name="data">불러오기 할 파일 데이터</param>
+        /// <returns>파일이 없을 경우 null을 반환</returns>
         bool Load(string fileName, out string data);
+        bool IsFileExist(string fileName);
     }
 
     public enum PersistenceType
@@ -48,7 +61,12 @@ namespace Gust.Persistence
         public bool Load(string fileName, out string data)
         {
             data = PlayerPrefs.GetString(fileName);
-            return true;
+            return data != null;
+        }
+
+        public bool IsFileExist(string fileName)
+        {
+            return PlayerPrefs.HasKey(fileName);
         }
     }
 
@@ -56,7 +74,7 @@ namespace Gust.Persistence
     {
         public bool Load(string fileName, out string data)
         {
-            data = string.Empty;
+            data = null;
 
             try
             {
@@ -87,6 +105,11 @@ namespace Gust.Persistence
                 Debug.LogError(e);
                 return false;
             }
+        }
+
+        public bool IsFileExist(string fileName)
+        {
+            return System.IO.File.Exists(fileName);
         }
     }
 }

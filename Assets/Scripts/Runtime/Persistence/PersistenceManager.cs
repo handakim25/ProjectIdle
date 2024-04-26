@@ -14,23 +14,6 @@ namespace Gust.Persistence
     // Unity ShaderGraph 관련 코드 참고할 것
 
     /// <summary>
-    /// Save File을 저장하기 위한 Interface
-    /// </summary>
-    public interface IPersistence
-    {
-        string FileName { get; }
-        /// <summary>
-        /// string 형태로 저장한다.
-        /// </summary>
-        /// <returns></returns>
-        string SaveDataToString();
-        /// <summary>
-        /// string 형태로 저장된 데이터를 불러온다.
-        /// </summary>
-        bool LoadDataFromString(string data);
-    }
-
-    /// <summary>
     /// 설정값을 저장하기 위한 Manager. 설정에 따라 PlayerPrefs나 File로 저장한다.
     /// </summary>
     public sealed class PersistenceManager : MonoSingleton<PersistenceManager>
@@ -44,71 +27,67 @@ namespace Gust.Persistence
         [Header("Save Settings")]
         [Tooltip("저장 방식을 선택한다.")]
         [SerializeField] private PersistenceType persistenceType = PersistenceType.PlayerPrefs;
+        public PersistenceType PersistenceType => persistenceType;
+
         private IPersistenceStrategy _persistanceStrategy;
 
-        private void Awake()
+        protected override void Init()
         {
             _persistanceStrategy = PersistenceStrategyFactory.Create(persistenceType);
         }
 
         /// <summary>
-        /// 현재 데이터를 저장한다.
+        /// 데이터를 저장한다. 데이터의 저장 방법은 설정된 방식에 따라 달라진다. e.g PlayerPrefs, File
         /// </summary>
+        /// <param name="fileName"></param>
         /// <param name="data"></param>
-        public bool SaveData(IPersistence data)
-        {
-            return SaveData(data.FileName, data.SaveDataToString());
-        }
-
-        private bool SaveData(string fileName, string data)
+        /// <returns></returns>
+        public bool SaveData(string fileName, string data)
         {
             if(string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(data))
             {
-                Debug.LogError("Failed to save data. fileName or data is empty.");
+                Debug.LogError($"{nameof(PersistenceManager)}: 입력값을 확인해주세요.");
                 return false;
             }
 
-            if (_persistanceStrategy.Save(fileName, data))
-            {
-                return true;
-            }
-            else
-            {
-                Debug.LogError("Failed to save data to persistence strategy.");
-                return false;
-            }
+            return _persistanceStrategy.Save(fileName, data);
         }
 
-        public bool LoadData(IPersistence persistence)
+        public bool SaveData<T>(string fileName, T data)
         {
-            if(LoadData(persistence.FileName, out string data))
-            {
-                return persistence.LoadDataFromString(data);
-            }
-            else
-            {
-                return false;
-            }
+            return SaveData(fileName, JsonConvert.SerializeObject(data));
         }
 
-        private bool LoadData(string fileName, out string data)
+        /// <summary>
+        /// Data를 로드한다. 만약에 파일이 존재하지 않거나 파일을 읽는데 실패하면 null을 반환한다.
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns>읽어들인 데이터, 만약에 파일이 존재하지 않거나 파일을 읽는데 실패하면 null을 반환한다.</returns>
+        public string LoadData(string fileName)
         {
             if(string.IsNullOrEmpty(fileName))
             {
-                Debug.LogError("Failed to load data. fileName is empty.");
-                data = string.Empty;
-                return false;
+                return null;
             }
 
-            if (_persistanceStrategy.Load(fileName, out data))
-            {
-                return true;
-            }
-            else
-            {
-                Debug.LogError("Failed to load data from persistence strategy.");
-                return false;
-            }
+            return _persistanceStrategy.Load(fileName, out string data) ? data : null;
+        }
+
+        /// <summary>
+        /// Data를 로드한다. 만약에 파일이 존재하지 않거나 파일을 읽는데 실패하면 default 값을 반환한다.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public T LoadData<T>(string fileName)
+        {
+            string data = LoadData(fileName);
+            return string.IsNullOrEmpty(data) ? default : JsonConvert.DeserializeObject<T>(data);
+        }
+
+        public bool HasFile(string fileName)
+        {
+            return _persistanceStrategy.IsFileExist(fileName);
         }
     }
 }
