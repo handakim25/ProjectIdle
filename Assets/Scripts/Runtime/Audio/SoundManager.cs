@@ -12,7 +12,7 @@ namespace Gust.Audio
     /// Audio Manager. BGM, SE 등을 재생한다.
     /// Audio를 재생하기 위해서는 초기화가 진행이 되어야 한다. Start에서 초기화를 진행하므로 최소한 Scene에서 Start를 지나야 한다.
     /// </summary>
-    public sealed partial class SoundManager : MonoSingleton<SoundManager>, IManager
+    public sealed partial class SoundManager : MonoSingleton<SoundManager>, IManager, IGameSettingLoad
     {
         public enum FadeType
         {
@@ -417,7 +417,16 @@ namespace Gust.Audio
                 _ => _masterGroupName,
             };
         }
-        
+
         #endregion Mixer
+
+        // Implement IGameSettingLoad
+        public void LoadSetting(GameSetting setting)
+        {
+            SetVolume(VolumeType.Master, setting.MasterVolume);
+            SetVolume(VolumeType.BGM, setting.BGMVolume);
+            SetVolume(VolumeType.SFX, setting.SFXVolume);
+            SetVolume(VolumeType.UI, setting.UIVolume);
+        }
     }
 }
