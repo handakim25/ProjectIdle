@@ -85,6 +85,11 @@ namespace Gust.Persistence
             return string.IsNullOrEmpty(data) ? default : JsonConvert.DeserializeObject<T>(data);
         }
 
+        /// <summary>
+        /// Data 존재 확인
+        /// </summary>
+        /// <param name="fileName">확인할 Data 이름</param>
+        /// <returns></returns>
         public bool HasFile(string fileName)
         {
             return _persistanceStrategy.IsFileExist(fileName);
