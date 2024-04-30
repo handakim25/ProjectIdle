@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
@@ -21,10 +22,7 @@ namespace Gust.UI
         [SerializeField] private GameObject _normalBackground;
         [SerializeField] private GameObject _selectedBackground;
 
-        [Tooltip("Select Event, Only Once")]
-        public UnityEvent OnSelect;
-        [Tooltip("Deselect Event, Only Once")]
-        public UnityEvent OnDeselect;
+        public UnityEvent<bool> OnValueChanged;
 
         protected override void Awake()
         {
@@ -68,14 +66,7 @@ namespace Gust.UI
             }
             _isSelected = isSelected;
 
-            if(_isSelected)
-            {
-                OnSelect.Invoke();
-            }
-            else
-            {
-                OnDeselect.Invoke();
-            }
+            OnValueChanged?.Invoke(isSelected);
 
             // Pointer Down -> Pointer Up -> Pointer Click
             // Pointer Up에서 Normal Scale을 처리하고
