@@ -17,10 +17,37 @@ namespace Gust.UI
         [SerializeField] private CustomToggleGroup _toggleGroup;
         [SerializeField] private bool _isSelected;
         [SerializeField] private float _selectScale;
-        public bool IsSelected => _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                _isSelected = value;
+                Select(_isSelected);
+            }
+        }
 
         [SerializeField] private GameObject _normalBackground;
+        public GameObject NormalBackground
+        {
+            get => _normalBackground;
+            set
+            {
+                _normalBackground = value;
+                UpdateBackground(!_isSelected);
+            }
+        }
+
         [SerializeField] private GameObject _selectedBackground;
+        public GameObject SelectedBackground
+        {
+            get => _selectedBackground;
+            set
+            {
+                _selectedBackground = value;
+                UpdateBackground(_isSelected);
+            }
+        }
 
         public UnityEvent<bool> OnValueChanged;
 
