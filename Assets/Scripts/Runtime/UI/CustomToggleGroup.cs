@@ -21,7 +21,8 @@ namespace Gust.UI
         }
 
         [SerializeField] private int _maxSelectCount = 1;
-        [SerializeField] private OverSelectPolicy _overSelectPolicy = OverSelectPolicy.DeselectFirst;
+        [Tooltip("최대 선택 가능 개수를 넘었을 때 처리 방식. DeselectFirst : 처음 선택된 버튼을 Deselect, DeselectLast : 마지막 선택된 버튼을 Deselect, BlockOverSelect : 추가 선택 불가")]
+        [SerializeField] private OverSelectPolicy _overSelectPolicy = OverSelectPolicy.BlockOverSelect;
 
         /// <summary>
         /// OverSelectPolicy가 BlockOverSelect일 때, 선택이 불가능할 때 발생하는 이벤트

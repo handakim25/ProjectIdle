@@ -15,8 +15,9 @@ namespace Gust.UI
         [Header("Toggle")]
         [Tooltip("Play 시에 Toggle Group을 인스펙터에서 변경하는 것은 불가능")]
         [SerializeField] private CustomToggleGroup _toggleGroup;
-        [SerializeField] private bool _isSelected;
-        [SerializeField] private float _selectScale;
+        [SerializeField] private bool _isSelected = false;
+        [Tooltip("Select 시에 Editor에서 반영되는 것은 현재 구현되어 있지 않으므로 실제 동작 시에 확인할 것")]
+        [SerializeField] private float _selectScale = 1f;
         public bool IsSelected
         {
             get => _isSelected;
@@ -113,5 +114,12 @@ namespace Gust.UI
                 _selectedBackground.SetActive(isSelected);
             }
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            UpdateBackground(_isSelected);
+        }
+#endif
     }
 }

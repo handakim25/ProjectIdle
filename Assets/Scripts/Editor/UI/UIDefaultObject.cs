@@ -96,7 +96,7 @@ namespace Gust.UI
         /// </remarks>
         public static GameObject CreateCutstomToggleButton()
         {
-            var buttonRoot = CreateUIElementRoot("Custom_Button", s_ThickElementSize);
+            var buttonRoot = CreateUIElementRoot("Custom_Toggle_Button", s_ThickElementSize);
 
             var background = CreateUiObject("Background", buttonRoot);
             var backgroundSelected = CreateUiObject("BackgroundSelected", buttonRoot);

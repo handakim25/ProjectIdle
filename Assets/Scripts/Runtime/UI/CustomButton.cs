@@ -12,14 +12,9 @@ namespace Gust.UI
     /// 버튼 클래스. 클릭을 하면 PressedScale로 스케일이 변경되고, 클릭을 떼면 원래 스케일로 돌아온다.
     /// 비활성화가 됬을 경우 Animation을 중단하고 원래 스케일로 돌아온다.
     /// </summary>
+    [ExecuteAlways]
     public class CustomButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
     {
-        [Header("Button Event")]
-        [Tooltip("Pointer Up Event")]
-        public UnityEvent PointerUp;
-        [Tooltip("Pointer Click Event")]
-        public UnityEvent PointerClick;
-
         [Header("Button Animation")]
         [Tooltip("Press Scale")]
         [SerializeField] private float _pressedScale = 0.9f;
@@ -33,6 +28,16 @@ namespace Gust.UI
         [SerializeField] private float _tweenDuration = 0.1f;
         [Tooltip("Press 시의 Tween Type")]
         [SerializeField] private Ease _tweenEaseType = Ease.OutCubic;
+
+        [Header("Button Event")]
+        [Tooltip("Pointer Up Event")]
+        public UnityEvent PointerUp;
+        [Tooltip("Pointer Click Event")]
+        public UnityEvent PointerClick;
+
+#if UNITY_EDITOR
+        [SerializeField] private bool _shouldLog = false;
+#endif
 
         protected virtual void Awake()
         {
@@ -57,13 +62,24 @@ namespace Gust.UI
 
         public virtual void OnPointerClick(PointerEventData eventData)
         {
-            Debug.Log($"OnPointerClick: {name}");
+#if UNITY_EDITOR
+            if (_shouldLog)
+            {
+                Debug.Log($"OnPointerClick: {name}");
+            }
+#endif
             PointerClick?.Invoke();
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            Debug.Log($"OnPointerDown: {name}");
+#if UNITY_EDITOR
+            if (_shouldLog)
+            {
+                Debug.Log($"OnPointerDown: {name}");
+
+            }
+#endif
             // Pressed 상태로 스케일 변경
             transform.DOScale(OrignalScale * _pressedScale, _tweenDuration)
                 .SetEase(_tweenEaseType)
@@ -72,7 +88,12 @@ namespace Gust.UI
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            Debug.Log($"OnPointerUp: {name}");
+#if UNITY_EDITOR
+            if (_shouldLog)
+            {
+                Debug.Log($"OnPointerUp: {name}");
+            }
+#endif    
             PointerUp?.Invoke();
 
             if (DOTween.IsTweening(transform))
@@ -81,7 +102,5 @@ namespace Gust.UI
             }
             transform.localScale = OrignalScale;
         }
-
-
     }
 }
