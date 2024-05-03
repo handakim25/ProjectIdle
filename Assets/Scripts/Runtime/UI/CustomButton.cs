@@ -31,9 +31,9 @@ namespace Gust.UI
 
         [Header("Button Event")]
         [Tooltip("Pointer Up Event")]
-        public UnityEvent PointerUp;
+        public UnityEvent PointerUpEvent;
         [Tooltip("Pointer Click Event")]
-        public UnityEvent PointerClick;
+        public UnityEvent PointerClickEvent;
 
 #if UNITY_EDITOR
         [SerializeField] private bool _shouldLog = false;
@@ -68,7 +68,7 @@ namespace Gust.UI
                 Debug.Log($"OnPointerClick: {name}");
             }
 #endif
-            PointerClick?.Invoke();
+            PointerClickEvent?.Invoke();
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -94,7 +94,7 @@ namespace Gust.UI
                 Debug.Log($"OnPointerUp: {name}");
             }
 #endif    
-            PointerUp?.Invoke();
+            PointerUpEvent?.Invoke();
 
             if (DOTween.IsTweening(transform))
             {

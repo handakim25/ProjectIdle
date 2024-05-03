@@ -87,7 +87,6 @@ namespace Gust.UI
 
         public void Select(bool isSelected)
         {
-            Debug.Log($"Select: {name}, {isSelected}");
             if(_isSelected == isSelected)
             {
                 return;
