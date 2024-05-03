@@ -15,9 +15,21 @@ namespace Gust
     public class GameSetting
     {
         // Audio Settings
+        /// <summary>
+        /// Master Volume. [0.0f, 1.0f]
+        /// </summary>
         public float MasterVolume { get; set; } = 1.0f;
+        /// <summary>
+        /// BGM Volume. [0.0f, 1.0f]
+        /// </summary>
         public float BGMVolume { get; set; } = 1.0f;
+        /// <summary>
+        /// SFX Volume. [0.0f, 1.0f]
+        /// </summary>
         public float SFXVolume { get; set; } = 1.0f;
+        /// <summary>
+        /// UI Volume. [0.0f, 1.0f]
+        /// </summary>
         public float UIVolume { get; set; } = 1.0f;
     }
 
@@ -30,6 +42,13 @@ namespace Gust
         public void LoadSetting(GameSetting setting);
     }
 
-    // Save는 지금 필요 없다. Setting Class가 현재의 값을 가지고 있고 이를 Manager에 적용하는 방식이다.
-    // Save를 하는 것은 Manager의 책임이 아니다.
+    public interface IGameSettignSave
+    {
+        public void SaveSetting(GameSetting setting);
+    }
+
+    public interface IGameSettingApply
+    {
+        public void ApplySetting(GameSetting setting);
+    }
 }

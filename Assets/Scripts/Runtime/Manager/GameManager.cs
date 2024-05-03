@@ -17,12 +17,14 @@ namespace Gust
         public float Progress => 1.0f;
         [SerializeField] private string _gameSettingFileName = "GameSetting.json";
         private GameSetting _setting;
+        public GameSetting GameSetting => _setting;
 
         private void Start()
         {
             var LoadSceneController = FindObjectOfType<LoadSceneController>();
             if(LoadSceneController != null)
             {
+                // Wait other Managers
                 LoadSceneController.OnComplete += OnCompleteHandler;
             }
             else
@@ -58,6 +60,11 @@ namespace Gust
                 PersistenceManager.Instance.SaveData(_gameSettingFileName, setting);
                 return setting;
             }
+        }
+
+        public void SaveGameSetting()
+        {
+            PersistenceManager.Instance.SaveData(_gameSettingFileName, _setting);
         }
     }
 }
