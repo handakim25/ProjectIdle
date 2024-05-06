@@ -8,6 +8,8 @@ using Gust.Utility;
 
 namespace Gust.Audio
 {
+    using static SoundUtility;
+
     /// <summary>
     /// Audio Manager. BGM, SE 등을 재생한다.
     /// Audio를 재생하기 위해서는 초기화가 진행이 되어야 한다. Start에서 초기화를 진행하므로 최소한 Scene에서 Start를 지나야 한다.
@@ -22,6 +24,7 @@ namespace Gust.Audio
         }
 
         [Header("Audio Settings")]
+        [Tooltip("SE 채널의 개수. 5개의 SE를 동시에 재생할 수 있다. 5개 이상의 SE를 재생할 경우 가장 오래된 SE를 중지하고 재생한다.")]
         [SerializeField] private int _maxSEChannel = 5;
         [SerializeField] private int _maxUIChannel = 5;
 
@@ -131,6 +134,7 @@ namespace Gust.Audio
             CreateAudioSources(transform, "UI", _uiAudioSources, _maxUIChannel);
             foreach(var uiAudioSource in _uiAudioSources)
             {
+                // UI는 항상 재생되어야 한다.
                 uiAudioSource.ignoreListenerPause = true;
                 uiAudioSource.outputAudioMixerGroup = null;
             }
@@ -336,6 +340,20 @@ namespace Gust.Audio
         }
 
         private AudioMixer _mixer;
+        /// <summary>
+        /// Master Volume, [0,1], Mute 여부
+        /// </summary>
+        private float _mainVolume;
+        private bool _mute = false;
+        public bool Mute
+        {
+            get => _mute;
+            set
+            {
+                _mute = value;
+                SetMute(_mute);
+            }
+        }
 
         private void InitAudioMixer(AudioMixer mixer)
         {
@@ -361,28 +379,25 @@ namespace Gust.Audio
         }
 
         /// <summary>
-        /// Volume 설정
+        /// Volume 설정, Mute가 설정되어 있으면 Volume은 0이 되지만 값은 기록해둔다. Mute를 해제하면 기록된 값으로 복구된다.
         /// </summary>
         /// <param name="type">설정할 Volume의 Type</param>
         /// <param name="ratio">[0,1]</param>
         public void SetVolume(VolumeType type, float ratio)
         {
-            if(_mixer == null)
+            if (_mixer == null)
             {
                 return;
             }
 
-            // 참조
-            // https://johnleonardfrench.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
-            // https://forum.unity.com/threads/audiomixer-setfloat-doesnt-work-on-awake.323880/
-            // https://ko.wikipedia.org/wiki/%EB%8D%B0%EC%8B%9C%EB%B2%A8
-
-            // Audio Mixer에서 0db는 최대 출력을 의마한다.
-            // Power는 V^2/R이므로 최종 식은 20 * log10(V1/V2)이다.
-
-            // ratio는 선형적으로 움직이지만 volume은 로그 단위로 움직인다.
-            ratio = Mathf.Clamp(ratio, 0.0001f, 1f); // Log10(ratio) : -4~0, 최소가 -80이므로 -4 밑으로 내려가는 값은 필요 없다.
-            float volume = Mathf.Log10(ratio) * 20;
+            // Master Volume는 Mute 여부에 따라 0으로 설정된다.
+            // Mute가 해제되면 Master Volume은 기록된 값으로 복구된다.
+            if(type == VolumeType.Master)
+            {
+                _mainVolume = ratio;
+                ratio = _mute ? 0f : ratio;
+            }
+            float volume = RatioToMixer(ratio);
 
             // Note
             // ref : https://docs.unity3d.com/ScriptReference/Audio.AudioMixer.SetFloat.html
@@ -394,16 +409,63 @@ namespace Gust.Audio
         /// Volume을 반환
         /// </summary>
         /// <param name="type"></param>
-        /// <returns>[0,1], Mixer가 없을 경우 0f를 반환</returns>
+        /// <returns>[0,1], Mixer가 없을 경우 -1f를 반환</returns>
         public float GetVolume(VolumeType type)
+        {
+            if (_mixer == null)
+            {
+                return -1f;
+            }
+
+            _mixer.GetFloat(GetVolumeParam(type), out float volume); 
+            return  MixerToRatio(volume);
+        }
+
+        public void SetMute(bool mute)
         {
             if(_mixer == null)
             {
-                return 0f;
+                return;
             }
 
-            _mixer.GetFloat(GetVolumeParam(type), out float volume);
-            return Mathf.Pow(10, volume / 20);
+            _mute = mute;
+            SetVolume(VolumeType.Master, _mainVolume); // Master Volume은 Mute 여부에 따라 0으로 설정된다.
+        }
+
+        /// <summary>
+        /// Master Volume, [0,1], Mute일 경우 0f를 반환한다.
+        /// </summary>
+        public float MasterVolume
+        {
+            get => GetVolume(VolumeType.Master);
+            set => SetVolume(VolumeType.Master, value);
+        }
+
+        /// <summary>
+        /// BGM Volume, [0,1]
+        /// </summary>
+        public float BGMVolume
+        {
+            get => GetVolume(VolumeType.BGM);
+            set => SetVolume(VolumeType.BGM, value);
+        }
+
+        /// <summary>
+        /// SFX Volume, [0,1]
+        /// </summary>
+        public float SFXVolume
+        {
+            get => GetVolume(VolumeType.SFX);
+            set => SetVolume(VolumeType.SFX, value);
+        }
+
+        /// <summary>
+        /// UI Volume, [0,1]
+        /// </summary>
+        public float UIVolume
+        {
+            get => GetVolume(VolumeType.UI);
+            set => SetVolume(VolumeType.UI, value);
         }
 
         private string GetVolumeParam(VolumeType type)
@@ -423,10 +485,66 @@ namespace Gust.Audio
         // Implement IGameSettingLoad
         public void LoadSetting(GameSetting setting)
         {
-            SetVolume(VolumeType.Master, setting.MasterVolume);
-            SetVolume(VolumeType.BGM, setting.BGMVolume);
-            SetVolume(VolumeType.SFX, setting.SFXVolume);
-            SetVolume(VolumeType.UI, setting.UIVolume);
+            MasterVolume = setting.MasterVolume;
+            BGMVolume = setting.BGMVolume;
+            SFXVolume = setting.SFXVolume;
+            UIVolume = setting.UIVolume;
+        }
+    }
+
+    public static class SoundUtility
+    {
+        /// <summary>
+        /// 볼륨 비율을 Mixer에 맞게 변환
+        /// </summary>
+        /// <param name="ratio">[0,1]</param>
+        /// <returns>-80db~0db</returns>
+        public static float RatioToMixer(float ratio)
+        {
+            // 참조
+            // https://johnleonardfrench.com/the-right-way-to-make-a-volume-slider-in-unity-using-logarithmic-conversion/
+            // https://forum.unity.com/threads/audiomixer-setfloat-doesnt-work-on-awake.323880/
+            // https://ko.wikipedia.org/wiki/%EB%8D%B0%EC%8B%9C%EB%B2%A8
+
+            // Audio Mixer에서 0db는 최대 출력을 의마한다.
+            // Power는 V^2/R이므로 최종 식은 20 * log10(V1/V2)이다.
+
+            // ratio는 선형적으로 움직이지만 volume은 로그 단위로 움직인다.
+            ratio = Mathf.Clamp(ratio, 0.0001f, 1f); // Log10(ratio) : -4~0, 최소가 -80이므로 -4 밑으로 내려가는 값은 필요 없다.
+            float volume = Mathf.Log10(ratio) * 20;
+            return volume;
+        }
+
+        /// <summary>
+        /// Mixer의 볼륨을 Ratio로 변환
+        /// </summary>
+        /// <param name="volume">-80db~0db</param>
+        /// <returns>0~1</returns>
+        public static float MixerToRatio(float volume)
+        {
+            return Mathf.Pow(10, volume / 20);
+        }
+
+        /// <summary>
+        /// [0,1] -> [0, 100], 값은 Clamp를 통해서 적용
+        /// </summary>
+        /// <param name="ratio"></param>
+        /// <returns></returns>
+        public static float RatioToPercentage(float ratio)
+        {
+            ratio = Mathf.Clamp(ratio, 0f, 1f);
+            return Mathf.Round(ratio * 100);
+        }
+
+        /// <summary>
+        /// [0, 100] -> [0, 1], 값은 Clamp를 통해서 적용
+        /// </summary>
+        /// <param name="percentage"></param>
+        /// <returns></returns>
+        public static float PercentageToRatio(float percentage)
+        {
+            percentage = Mathf.Clamp(percentage, 0f, 100f);
+            return percentage / 100;
         }
     }
 }
