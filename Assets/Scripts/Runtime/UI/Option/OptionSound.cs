@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 using Gust.Audio;
 
-namespace Gust.UI
+namespace Gust.UI.Option
 {
     /// <summary>
     /// Option Menu에서 Sound 설정을 담당하는 Class
@@ -15,10 +15,10 @@ namespace Gust.UI
     public class OptionSound : MonoBehaviour
     {
         // Slider : [0, 100], Volume : [0.0f, 1.0f]
-        [SerializeField] private Slider _masterVolumeSlider;
-        [SerializeField] private Slider _bgmVolumeSlider;
-        [SerializeField] private Slider _sfxVolumeSlider;
-        [SerializeField] private Slider _uiVolumeSlider;
+        [SerializeField] private OptionSliderButtonWithText _masterVolumeSlider;
+        [SerializeField] private OptionSliderButtonWithText _bgmVolumeSlider;
+        [SerializeField] private OptionSliderButtonWithText _sfxVolumeSlider;
+        [SerializeField] private OptionSliderButtonWithText _uiVolumeSlider;
 
         [SerializeField] private string _masterVolumeCheckSound;
 
@@ -31,25 +31,25 @@ namespace Gust.UI
             if(_masterVolumeSlider != null)
             {
                 _masterVolumeSlider.onValueChanged.AddListener(OnMaterVolumeChanged);
-                _masterVolumeSlider.value = ToSliderValue(_setting.MasterVolume);
+                _masterVolumeSlider.Value = SoundUtility.RatioToPercentage(_setting.MasterVolume);
             }
             
             if(_bgmVolumeSlider != null)
             {
                 _bgmVolumeSlider.onValueChanged.AddListener(OnBGMVolumeChanged);
-                _bgmVolumeSlider.value = ToSliderValue(_setting.BGMVolume);
+                _bgmVolumeSlider.Value = SoundUtility.RatioToPercentage(_setting.BGMVolume);
             }
 
             if(_sfxVolumeSlider != null)
             {
                 _sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
-                _sfxVolumeSlider.value = ToSliderValue(_setting.SFXVolume);
+                _sfxVolumeSlider.Value = SoundUtility.RatioToPercentage(_setting.SFXVolume);
             }
 
             if(_uiVolumeSlider != null)
             {
                 _uiVolumeSlider.onValueChanged.AddListener(OnUIVolumeChanged);
-                _uiVolumeSlider.value = ToSliderValue(_setting.UIVolume);
+                _uiVolumeSlider.Value = SoundUtility.RatioToPercentage(_setting.UIVolume);
             }
         }
 
@@ -62,19 +62,19 @@ namespace Gust.UI
 
             if(_masterVolumeSlider != null)
             {
-                _masterVolumeSlider.value = ToSliderValue(_setting.MasterVolume);
+                _masterVolumeSlider.Value = SoundUtility.RatioToPercentage(_setting.MasterVolume);
             }
             if(_bgmVolumeSlider != null)
             {
-                _bgmVolumeSlider.value = ToSliderValue(_setting.BGMVolume);
+                _bgmVolumeSlider.Value = SoundUtility.RatioToPercentage(_setting.BGMVolume);
             }
             if(_sfxVolumeSlider != null)
             {
-                _sfxVolumeSlider.value = ToSliderValue(_setting.SFXVolume);
+                _sfxVolumeSlider.Value = SoundUtility.RatioToPercentage(_setting.SFXVolume);
             }
             if(_uiVolumeSlider != null)
             {
-                _uiVolumeSlider.value = ToSliderValue(_setting.UIVolume);
+                _uiVolumeSlider.Value = SoundUtility.RatioToPercentage(_setting.UIVolume);
             }
         }
 
@@ -83,31 +83,30 @@ namespace Gust.UI
             GameManager.Instance.SaveGameSetting();
         }
 
+        // Slider는 [0,100], Volume은 [0.0f, 1.0f]로 변환하여 저장
+
         private void OnMaterVolumeChanged(float value)
         {
-            _setting.MasterVolume = ToSettingValue(value);
+            _setting.MasterVolume = SoundUtility.PercentageToRatio(value);
             SoundManager.Instance.MasterVolume = _setting.MasterVolume;
         }
 
         private void OnBGMVolumeChanged(float value)
         {
-            _setting.BGMVolume = ToSettingValue(value);
+            _setting.BGMVolume = SoundUtility.PercentageToRatio(value);
             SoundManager.Instance.BGMVolume = _setting.BGMVolume;
         }
 
         private void OnSFXVolumeChanged(float value)
         {
-            _setting.SFXVolume = ToSettingValue(value);
+            _setting.SFXVolume = SoundUtility.PercentageToRatio(value);
             SoundManager.Instance.SFXVolume = _setting.SFXVolume;
         }
 
         private void OnUIVolumeChanged(float value)
         {
-            _setting.UIVolume = ToSettingValue(value);
+            _setting.UIVolume = SoundUtility.PercentageToRatio(value);
             SoundManager.Instance.UIVolume = _setting.UIVolume;
         }
-
-        private float ToSettingValue(float value) => value / 100;
-        private float ToSliderValue(float value) => value * 100;
     }
 }
