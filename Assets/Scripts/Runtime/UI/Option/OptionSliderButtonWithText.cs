@@ -5,10 +5,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using TMPro;
-using System;
 
 namespace Gust.UI.Option
 {
+    // Slider의 값을 변경 시키고 Slider의 OnValueChanged를 이용해서 다른 UI를 변경한다.
+    // 하나의 기준값은 Slider의 value이다.
+
     public class OptionSliderButtonWithText : MonoBehaviour
     {
         [SerializeField] private Slider _slider;
@@ -18,30 +20,64 @@ namespace Gust.UI.Option
         [Tooltip("Plus, Minus 버튼을 눌렀을 때 변하는 값")]
         [SerializeField] private int _tickValue = 1;
 
+        /// <summary>
+        /// Called when the value of the slider changes. Param : slider value
+        /// </summary>
         public UnityEvent<float> onValueChanged;
+
+        private void Awake()
+        {
+            if(_slider != null)
+            {
+                _slider.onValueChanged.AddListener(OnValueChagned);
+                UpdateValueText(_slider.value);
+            }
+            if(_minusButton != null)
+            {
+                _minusButton.PointerClickEvent.AddListener(() => _slider.value -= _tickValue);
+                _minusButton.PointerPressEvent.AddListener(() => _slider.value -= _tickValue);
+            }
+            if(_plusButton != null)
+            {
+                _plusButton.PointerClickEvent.AddListener(() => _slider.value += _tickValue);
+                _plusButton.PointerPressEvent.AddListener(() => _slider.value += _tickValue);
+            }
+        }
+
+        // @Memo
+        // Slider를 기준으로 설정할 것
+        // Slider의 값을 변경하면 Slider OnValueChanged가 호출되서 다른 GUI를 변경
 
         public float Value
         {
             get => _slider.value;
-            set => SetValue(value);
+            set => _slider.value = value;
         }
 
-        private void Awake()
+        public string ValueText
         {
-            _minusButton.PointerClickEvent.AddListener(() => OnButtonClicked(- _tickValue));
-            _plusButton.PointerClickEvent.AddListener(() => OnButtonClicked(_tickValue));
-            _slider.onValueChanged.AddListener((value) => Debug.Log($"Slider Value Changed : {value}"));
+            get
+            {
+                return _valueText != null ? _valueText.text : string.Empty;
+            }
         }
 
-        private void OnButtonClicked(float value)
+        private void UpdateValueText(float value)
         {
-            SetValue(_slider.value + value);
+            if(_valueText != null)
+            {
+                // float의 소수점 이하를 버리는 형식은 d가 아니라 0이다.
+                _valueText.text = value.ToString("0");
+            }
         }
 
-        public void SetValue(float value)
+        private void OnValueChagned(float value)
         {
-            _slider.value = value;
-            _valueText.text = _slider.value.ToString(); // Slider에서 값 제한이 있으므로 해당 값 제한을 이용해서 Text 설정
+            // Update Value Text
+            UpdateValueText(value);
+
+            // Notiryf
+            onValueChanged?.Invoke(value);
         }
 
 #if UNITY_EDITOR

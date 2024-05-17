@@ -5,6 +5,7 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 using DG.Tweening;
+using System;
 
 namespace Gust.UI
 {
@@ -13,7 +14,7 @@ namespace Gust.UI
     /// 비활성화가 됬을 경우 Animation을 중단하고 원래 스케일로 돌아온다.
     /// </summary>
     [ExecuteAlways]
-    public class CustomButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
+    public class CustomButton : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler, IDragHandler
     {
         [Header("Button Animation")]
         [Tooltip("Press Scale")]
@@ -34,6 +35,18 @@ namespace Gust.UI
         public UnityEvent PointerUpEvent;
         [Tooltip("Pointer Click Event")]
         public UnityEvent PointerClickEvent;
+        public UnityEvent PointerDownEvent;
+        public UnityEvent PointerPressEvent;
+        [Tooltip("Pointer Down 후 Press Event를 발생시키기 위한 Delay 시간, 그 이전에 마우스를 뗄 경우 Press Event가 발생하지 않는다.")]
+        [SerializeField] private float _pressStartDelay = 0.5f;
+        [Tooltip("Press Event를 발생시키는 간격")]
+        [SerializeField] private float _repeatInterval = 0.1f;
+
+        /// <summary>
+        /// Pointer가 Button 위에 올라가 있는지 여부
+        /// </summary>
+        private bool _isHover = false;
+        Coroutine _pressedCoroutine;
 
 #if UNITY_EDITOR
         [SerializeField] private bool _shouldLog = false;
@@ -51,6 +64,12 @@ namespace Gust.UI
                 transform.DOKill();
             }
             transform.localScale = OrignalScale;
+
+            if(_pressedCoroutine != null)
+            {
+                StopCoroutine(_pressedCoroutine);
+                _pressedCoroutine = null;
+            }
         }
 
         // @Memo
@@ -65,10 +84,16 @@ namespace Gust.UI
 #if UNITY_EDITOR
             if (_shouldLog)
             {
-                Debug.Log($"OnPointerClick: {name}");
+                Debug.Log($"OnPointerClick: {name}, Time : {Time.time}");
             }
 #endif
             PointerClickEvent?.Invoke();
+
+            if(_pressedCoroutine != null)
+            {
+                StopCoroutine(_pressedCoroutine);
+                _pressedCoroutine = null;
+            }
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -76,14 +101,40 @@ namespace Gust.UI
 #if UNITY_EDITOR
             if (_shouldLog)
             {
-                Debug.Log($"OnPointerDown: {name}");
-
+                Debug.Log($"OnPointerDown: {name}, Time : {Time.time}");
             }
 #endif
+            PointerDownEvent?.Invoke();
+
             // Pressed 상태로 스케일 변경
             transform.DOScale(OrignalScale * _pressedScale, _tweenDuration)
                 .SetEase(_tweenEaseType)
                 .SetUpdate(true);
+
+            _pressedCoroutine = StartCoroutine(CheckPressedCoroutine());
+        }
+
+        /// <summary>
+        /// Pressed 상태에서 일정 시간 동안 PointerPressEvent를 발생시킨다.
+        /// Pointer가 Button 위에 올라가 있는 동안에만 발생한다.
+        /// </summary>
+        private IEnumerator CheckPressedCoroutine()
+        {
+            float repeatInterval = _repeatInterval;
+
+            // Click 상황으로 가면 Press Event를 발생시키지 않는다.
+            yield return new WaitForSeconds(_pressStartDelay);
+
+            while (true)
+            {
+                if(_isHover)
+                {
+                    PointerPressEvent?.Invoke();
+                    // @To-Do : Update Repeat Interval using damping
+                }
+
+                yield return new WaitForSeconds(repeatInterval);
+            }
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -91,7 +142,7 @@ namespace Gust.UI
 #if UNITY_EDITOR
             if (_shouldLog)
             {
-                Debug.Log($"OnPointerUp: {name}");
+                Debug.Log($"OnPointerUp: {name}, Time : {Time.time}");
             }
 #endif    
             PointerUpEvent?.Invoke();
@@ -101,6 +152,43 @@ namespace Gust.UI
                 transform.DOKill();
             }
             transform.localScale = OrignalScale;
+        }
+
+        // Press Event를 Hover 상태에서만 발생하기 위해서 사용
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+#if UNITY_EDITOR
+            if (_shouldLog)
+            {
+                Debug.Log($"OnPointerEnter: {name}, Time : {Time.time}");
+            }
+#endif
+            _isHover = true;
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+#if UNITY_EDITOR
+            if (_shouldLog)
+            {
+                Debug.Log($"OnPointerEnter: {name}, Time : {Time.time}");
+            }
+#endif
+            _isHover = false;
+        }
+
+        // OnDrag가 없으면 마우스 포인터가 밖으로 나갔을 때 OnPointerUp이 호출된다.
+        // reference: https://issuetracker.unity3d.com/issues/onpointerup-is-called-when-dragging-mouse-from-the-object-which-is-a-child-of-an-inputfield
+
+        public void OnDrag(PointerEventData eventData)
+        {
+#if UNITY_EDITOR
+            if (_shouldLog)
+            {
+                Debug.Log($"OnDrag: {name}, Time : {Time.time}");
+            }
+#endif
         }
     }
 }
