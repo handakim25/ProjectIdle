@@ -11,6 +11,7 @@ namespace Gust.UI.Option
     // Slider의 값을 변경 시키고 Slider의 OnValueChanged를 이용해서 다른 UI를 변경한다.
     // 하나의 기준값은 Slider의 value이다.
 
+    [ExecuteAlways]
     public class OptionSliderButtonWithText : MonoBehaviour
     {
         [SerializeField] private Slider _slider;
@@ -101,6 +102,17 @@ namespace Gust.UI.Option
                         break;
                 }
             });
+        }
+
+        /// <summary>
+        /// Editor Mode에서도 Slider의 값을 변경하면 Text를 변경한다.
+        /// </summary>
+        private void OnValidate()
+        {
+            if(_slider != null)
+            {
+                UpdateValueText(_slider.value);
+            }
         }
 #endif
     }

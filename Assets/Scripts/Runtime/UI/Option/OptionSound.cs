@@ -14,19 +14,39 @@ namespace Gust.UI.Option
     /// </summary>
     public class OptionSound : MonoBehaviour
     {
-        // Slider : [0, 100], Volume : [0.0f, 1.0f]
+        [Header("UI Components")]
+        [Tooltip("Slider : [0,100], Volume : [0.0f, 1.0f]")]
         [SerializeField] private OptionSliderButtonWithText _masterVolumeSlider;
+        [Tooltip("Slider : [0,100], Volume : [0.0f, 1.0f]")]
         [SerializeField] private OptionSliderButtonWithText _bgmVolumeSlider;
+        [Tooltip("Slider : [0,100], Volume : [0.0f, 1.0f]")]
         [SerializeField] private OptionSliderButtonWithText _sfxVolumeSlider;
+        [Tooltip("Slider : [0,100], Volume : [0.0f, 1.0f]")]
         [SerializeField] private OptionSliderButtonWithText _uiVolumeSlider;
 
-        [SerializeField] private string _masterVolumeCheckSound;
+        [SerializeField] private CustomToggleButton _muteButton;
+        [SerializeField] private CustomToggleButton _playBackgroundButton;
 
+        // @To-Do
+        // Option 설정 중에 설정이 Sound를 재생해서 volume에 대해서 테스트할 수 있도록 한다.
+
+        [Header("UI Check Sounds")]
+        [SerializeField] private string _masterVolumeCheckSound;
+        [SerializeField] private string _bgmVolumeCheckSound;
+        [SerializeField] private string _sfxVolumeCheckSound;
+        [SerializeField] private string _uiVolumeCheckSound;
+
+        // Setting은 하나의 Instance를 통해서 관리되고 있다. 이를 수정하고 Game Manager에 Save를 요청한다.
         private GameSetting _setting;
 
         private void Start()
         {
             _setting = GameManager.Instance.GameSetting;
+            if(_setting == null)
+            {
+                Debug.LogError("Could not find GameSetting in GameManager");
+                return;
+            }
 
             if(_masterVolumeSlider != null)
             {
@@ -51,10 +71,23 @@ namespace Gust.UI.Option
                 _uiVolumeSlider.onValueChanged.AddListener(OnUIVolumeChanged);
                 _uiVolumeSlider.Value = SoundUtility.RatioToPercentage(_setting.UIVolume);
             }
+
+            if(_muteButton != null)
+            {
+                _muteButton.PointerClickEvent.AddListener(() => SoundManager.Instance.Mute = !_muteButton.IsSelected);
+            }
+            if(_playBackgroundButton != null)
+            {
+                // @To-Do
+                // Play Background를 통해서 Background Sound를 재생하거나 중지한다.
+                // _playBackgroundButton.PointerClickEvent.AddListener(() => SoundManager.Instance.PlayBackground = !_playBackgroundButton.IsSelected);
+            }
         }
 
         private void OnEnable()
         {
+            // Awake 상황에서 Setting을 얻어오는 것이 아니라 Start에서 Setting을 얻기 위함이다.
+            // 만약, Start에서 Setting을 획득하지 않았을 경우 이 또한, 잘못된 동작이기에 작동하지 않는다.
             if(_setting == null)
             {
                 return;
